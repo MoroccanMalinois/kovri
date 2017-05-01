@@ -211,7 +211,7 @@ class FileStream {
   template <typename SizeCast = std::size_t, typename Buffer, typename Size>
   bool Write(Buffer* buf, Size&& size) {
     m_Stream->write(
-        reinterpret_cast<char*>(buf),
+        reinterpret_cast<const char*>(buf),
         static_cast<SizeCast>(std::forward<Size>(size)));
     if (m_Stream->bad())
       {
