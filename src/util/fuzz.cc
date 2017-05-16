@@ -35,6 +35,7 @@
 
 #include "core/util/log.h"
 
+#include "tests/fuzz_tests/eddsa25519.h"
 #include "tests/fuzz_tests/i2pcontrol.h"
 #include "tests/fuzz_tests/lease_set.h"
 #include "tests/fuzz_tests/routerinfo.h"
@@ -100,6 +101,7 @@ FuzzCommand::FuzzCommand()
 void FuzzCommand::PrintAvailableTargets() const
 {
   LOG(info) << "Available targets : ";
+  LOG(info) << "\teddsa25519";
   LOG(info) << "\ti2pcontrol";
   LOG(info) << "\tleaseset";
   LOG(info) << "\trouterinfo";
@@ -167,6 +169,10 @@ bool FuzzCommand::Impl(
       LOG(error) << "Fuzz: Empty target !";
       PrintUsage(cmd_name);
       return false;
+    }
+  else if (target == "eddsa25519")
+    {
+      CurrentTarget = new kovri::fuzz::EdDSA25519();
     }
   else if (target == "su3")
     {
