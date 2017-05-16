@@ -36,7 +36,11 @@
 #include "core/util/log.h"
 
 #include "tests/fuzz_tests/eddsa25519.h"
+<<<<<<< 950a652de5e6c88ffab24aa4cbe093cf6be7ae9f
 #include "tests/fuzz_tests/i2pcontrol.h"
+=======
+#include "tests/fuzz_tests/http.h"
+>>>>>>> kovri-util: fuzz tests add HTTPMessage
 #include "tests/fuzz_tests/lease_set.h"
 #include "tests/fuzz_tests/routerinfo.h"
 #include "tests/fuzz_tests/su3.h"
@@ -102,7 +106,11 @@ void FuzzCommand::PrintAvailableTargets() const
 {
   LOG(info) << "Available targets : ";
   LOG(info) << "\teddsa25519";
+<<<<<<< 950a652de5e6c88ffab24aa4cbe093cf6be7ae9f
   LOG(info) << "\ti2pcontrol";
+=======
+  LOG(info) << "\thttp_message";
+>>>>>>> kovri-util: fuzz tests add HTTPMessage
   LOG(info) << "\tleaseset";
   LOG(info) << "\trouterinfo";
   LOG(info) << "\tsu3";
@@ -173,6 +181,10 @@ bool FuzzCommand::Impl(
   else if (target == "eddsa25519")
     {
       CurrentTarget = new kovri::fuzz::EdDSA25519();
+    }
+  else if (target == "http_message")
+    {
+      CurrentTarget = new kovri::fuzz::HTTPMessage();
     }
   else if (target == "su3")
     {
