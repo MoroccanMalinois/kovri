@@ -21,6 +21,7 @@ if(WITH_FUZZ_TESTS)
     "../../tests/fuzz_tests/lease_set.cc"
     "../../tests/fuzz_tests/routerinfo.cc"
     "../../tests/fuzz_tests/su3.cc"
+    "../../tests/fuzz_tests/zip.cc"
     "fuzz.cc")
 endif()
 

@@ -45,6 +45,7 @@
 #include "tests/fuzz_tests/routerinfo.h"
 #include "tests/fuzz_tests/su3.h"
 #include "tests/fuzz_tests/target.h"
+#include "tests/fuzz_tests/zip.h"
 
 namespace bpo = boost::program_options;
 
@@ -114,6 +115,7 @@ void FuzzCommand::PrintAvailableTargets() const
   LOG(info) << "\tleaseset";
   LOG(info) << "\trouterinfo";
   LOG(info) << "\tsu3";
+  LOG(info) << "\tzip";
 }
 
 void FuzzCommand::PrintUsage(const std::string& name) const
@@ -186,17 +188,21 @@ bool FuzzCommand::Impl(
     {
       CurrentTarget = new kovri::fuzz::HTTPMessage();
     }
-  else if (target == "su3")
+  else if (target == "leaseset")
     {
-      CurrentTarget = new kovri::fuzz::SU3();
+      CurrentTarget = new kovri::fuzz::LeaseSet();
     }
   else if (target == "routerinfo")
     {
       CurrentTarget = new kovri::fuzz::RouterInfo();
     }
-  else if (target == "leaseset")
+  else if (target == "su3")
     {
-      CurrentTarget = new kovri::fuzz::LeaseSet();
+      CurrentTarget = new kovri::fuzz::SU3();
+    }
+  else if (target == "zip")
+    {
+      CurrentTarget = new kovri::fuzz::ZIP();
     }
   else if (target == "i2pcontrol")
     {
