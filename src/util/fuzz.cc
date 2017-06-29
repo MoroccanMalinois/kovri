@@ -35,6 +35,7 @@
 
 #include "core/util/log.h"
 
+#include "tests/fuzz_tests/core/router/transports/ssu/packet.h"
 #include "tests/fuzz_tests/i2pcontrol.h"
 #include "tests/fuzz_tests/lease_set.h"
 #include "tests/fuzz_tests/routerinfo.h"
@@ -103,6 +104,16 @@ void FuzzCommand::PrintAvailableTargets() const
   LOG(info) << "\ti2pcontrol";
   LOG(info) << "\tleaseset";
   LOG(info) << "\trouterinfo";
+  LOG(info) << "\tssu-packet";
+  LOG(info) << "\tssu-header";
+  LOG(info) << "\tssu-session-request";
+  LOG(info) << "\tssu-session-created";
+  LOG(info) << "\tssu-session-confirmed";
+  LOG(info) << "\tssu-relay-request";
+  LOG(info) << "\tssu-relay-response";
+  LOG(info) << "\tssu-relay-intro";
+  LOG(info) << "\tssu-data";
+  LOG(info) << "\tssu-peer-test";
   LOG(info) << "\tsu3";
 }
 
@@ -168,17 +179,57 @@ bool FuzzCommand::Impl(
       PrintUsage(cmd_name);
       return false;
     }
-  else if (target == "su3")
+  else if (target == "leaseset")
     {
-      CurrentTarget = new kovri::fuzz::SU3();
+      CurrentTarget = new kovri::fuzz::LeaseSet();
     }
   else if (target == "routerinfo")
     {
       CurrentTarget = new kovri::fuzz::RouterInfo();
     }
-  else if (target == "leaseset")
+  else if (target == "ssu-packet")
     {
-      CurrentTarget = new kovri::fuzz::LeaseSet();
+      CurrentTarget = new kovri::fuzz::SSUPacket();
+    }
+  else if (target == "ssu-header")
+    {
+      CurrentTarget = new kovri::fuzz::SSUHeader();
+    }
+  else if (target == "ssu-session-request")
+    {
+      CurrentTarget = new kovri::fuzz::SSUSessionRequest();
+    }
+  else if (target == "ssu-session-created")
+    {
+      CurrentTarget = new kovri::fuzz::SSUSessionCreated();
+    }
+  else if (target == "ssu-session-confirmed")
+    {
+      CurrentTarget = new kovri::fuzz::SSUSessionConfirmed();
+    }
+  else if (target == "ssu-relay-request")
+    {
+      CurrentTarget = new kovri::fuzz::SSURelayRequest();
+    }
+  else if (target == "ssu-relay-response")
+    {
+      CurrentTarget = new kovri::fuzz::SSURelayResponse();
+    }
+  else if (target == "ssu-relay-intro")
+    {
+      CurrentTarget = new kovri::fuzz::SSURelayIntro();
+    }
+  else if (target == "ssu-data")
+    {
+      CurrentTarget = new kovri::fuzz::SSUData();
+    }
+  else if (target == "ssu-peer-test")
+    {
+      CurrentTarget = new kovri::fuzz::SSUPeerTest();
+    }
+  else if (target == "su3")
+    {
+      CurrentTarget = new kovri::fuzz::SU3();
     }
   else if (target == "i2pcontrol")
     {
