@@ -50,6 +50,7 @@ option(WITH_STATIC     "Static build" OFF)
 option(WITH_SUPERCOP   "Build Ed25519 using the ref10 implementation from SUPERCOP" ON)  # Default ON unless we switch implementations
 option(WITH_TESTS      "Build unit tests" OFF)
 option(WITH_FUZZ_TESTS "Build fuzz tests" OFF)
+option(WITH_GET_CORPUS "Get corpus data for fuzz tests" OFF)
 option(WITH_UPNP       "Include support for UPnP client" OFF)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
@@ -301,6 +302,10 @@ if(KOVRI_DATA_PATH)
   add_definitions(-DKOVRI_CUSTOM_DATA_PATH="${KOVRI_DATA_PATH}")
 endif()
 
+if(WITH_GET_CORPUS)
+  add_definitions(-DWITH_GET_CORPUS)
+endif()
+
 # Show summary
 message(STATUS "---------------------------------------")
 message(STATUS "Build type         : ${CMAKE_BUILD_TYPE}")
@@ -321,6 +326,7 @@ message(STATUS "  STATIC BUILD     : ${WITH_STATIC}")
 message(STATUS "  SUPERCOP         : ${WITH_SUPERCOP}")
 message(STATUS "  TESTS            : ${WITH_TESTS}")
 message(STATUS "  FUZZ TESTS       : ${WITH_FUZZ_TESTS}")
+message(STATUS "  GET_CORPUS       : ${WITH_GET_CORPUS}")
 message(STATUS "  UPnP             : ${WITH_UPNP}")
 message(STATUS "---------------------------------------")
 

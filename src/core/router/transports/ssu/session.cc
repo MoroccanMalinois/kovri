@@ -223,6 +223,9 @@ void SSUSession::ProcessDecryptedMessage(
     std::size_t len,
     const boost::asio::ip::udp::endpoint& sender_endpoint) {
   len -= (len & 0x0F);  // %16, delete extra padding
+#ifdef WITH_GET_CORPUS
+  kovri::core::OutputFuzzData("ssu-packet", buf, len);
+#endif  // WITH_GET_CORPUS
   SSUPacketParser parser(buf, len);
   std::unique_ptr<SSUPacket> packet;
   try {

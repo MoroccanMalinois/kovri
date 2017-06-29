@@ -673,6 +673,9 @@ SSUFragment SSUPacketParser::ParseFragment() {
 }
 
 std::unique_ptr<SSUHeader> SSUPacketParser::ParseHeader() {
+#ifdef WITH_GET_CORPUS
+  kovri::core::OutputFuzzData("ssu-header", m_Data, m_Length);
+#endif  // WITH_GET_CORPUS
   if (m_Length < GetType(SSUSize::HeaderMin))
     throw std::length_error("SSU header too small");
   auto header = std::make_unique<SSUHeader>();
@@ -744,6 +747,9 @@ std::unique_ptr<SSUPacket> SSUPacketParser::ParsePacket() {
 }
 
 std::unique_ptr<SSUSessionRequestPacket> SSUPacketParser::ParseSessionRequest() {
+#ifdef WITH_GET_CORPUS
+  kovri::core::OutputFuzzData("ssu-session-request", m_Data, m_Length);
+#endif  // WITH_GET_CORPUS
   auto packet = std::make_unique<SSUSessionRequestPacket>();
   packet->SetDhX(ReadBytes(GetType(SSUSize::DHPublic)));
   std::size_t size = ReadUInt8();
@@ -752,6 +758,9 @@ std::unique_ptr<SSUSessionRequestPacket> SSUPacketParser::ParseSessionRequest() 
 }
 
 std::unique_ptr<SSUSessionCreatedPacket> SSUPacketParser::ParseSessionCreated() {
+#ifdef WITH_GET_CORPUS
+  kovri::core::OutputFuzzData("ssu-session-created", m_Data, m_Length);
+#endif  // WITH_GET_CORPUS
   auto packet = std::make_unique<SSUSessionCreatedPacket>();
   packet->SetDhY(ReadBytes(GetType(SSUSize::DHPublic)));
   std::size_t address_size = ReadUInt8();
@@ -764,6 +773,9 @@ std::unique_ptr<SSUSessionCreatedPacket> SSUPacketParser::ParseSessionCreated() 
 }
 
 std::unique_ptr<SSUSessionConfirmedPacket> SSUPacketParser::ParseSessionConfirmed() {
+#ifdef WITH_GET_CORPUS
+  kovri::core::OutputFuzzData("ssu-session-confirmed", m_Data, m_Length);
+#endif  // WITH_GET_CORPUS
   const std::size_t init_length = m_Length;
   auto packet = std::make_unique<SSUSessionConfirmedPacket>();
   ConsumeData(1);  // Skip info byte
@@ -782,6 +794,9 @@ std::unique_ptr<SSUSessionConfirmedPacket> SSUPacketParser::ParseSessionConfirme
 }
 
 std::unique_ptr<SSURelayRequestPacket> SSUPacketParser::ParseRelayRequest() {
+#ifdef WITH_GET_CORPUS
+  kovri::core::OutputFuzzData("ssu-relay-request", m_Data, m_Length);
+#endif  // WITH_GET_CORPUS
   auto packet = std::make_unique<SSURelayRequestPacket>();
   packet->SetRelayTag(ReadUInt32());
   const std::size_t address_size = ReadUInt8();
@@ -795,6 +810,9 @@ std::unique_ptr<SSURelayRequestPacket> SSUPacketParser::ParseRelayRequest() {
 }
 
 std::unique_ptr<SSURelayResponsePacket> SSUPacketParser::ParseRelayResponse() {
+#ifdef WITH_GET_CORPUS
+  kovri::core::OutputFuzzData("ssu-relay-response", m_Data, m_Length);
+#endif  // WITH_GET_CORPUS
   auto packet = std::make_unique<SSURelayResponsePacket>();
   const std::size_t charlie_address_size = ReadUInt8();
   packet->SetIPAddressCharlie(ReadBytes(charlie_address_size), charlie_address_size);
@@ -807,6 +825,9 @@ std::unique_ptr<SSURelayResponsePacket> SSUPacketParser::ParseRelayResponse() {
 }
 
 std::unique_ptr<SSURelayIntroPacket> SSUPacketParser::ParseRelayIntro() {
+#ifdef WITH_GET_CORPUS
+  kovri::core::OutputFuzzData("ssu-relay-intro", m_Data, m_Length);
+#endif  // WITH_GET_CORPUS
   auto packet = std::make_unique<SSURelayIntroPacket>();
   const std::size_t address_size = ReadUInt8();
   packet->SetIPAddress(ReadBytes(address_size), address_size);
@@ -817,6 +838,9 @@ std::unique_ptr<SSURelayIntroPacket> SSUPacketParser::ParseRelayIntro() {
 }
 
 std::unique_ptr<SSUDataPacket> SSUPacketParser::ParseData() {
+#ifdef WITH_GET_CORPUS
+  kovri::core::OutputFuzzData("ssu-data", m_Data, m_Length);
+#endif  // WITH_GET_CORPUS
   auto packet = std::make_unique<SSUDataPacket>();
   const std::uint8_t flags = ReadUInt8();
   // Read ACKS
@@ -849,6 +873,9 @@ std::unique_ptr<SSUDataPacket> SSUPacketParser::ParseData() {
 }
 
 std::unique_ptr<SSUPeerTestPacket> SSUPacketParser::ParsePeerTest() {
+#ifdef WITH_GET_CORPUS
+  kovri::core::OutputFuzzData("ssu-peer-test", m_Data, m_Length);
+#endif  // WITH_GET_CORPUS
   auto packet = std::make_unique<SSUPeerTestPacket>();
   packet->SetNonce(ReadUInt32());
   // TODO(EinMByte): Handle other address sizes, or deal with the errors.

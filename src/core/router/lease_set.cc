@@ -106,12 +106,18 @@ LeaseSet::LeaseSet(
   m_BufferLen += local_destination->GetIdentity().GetSignatureLen();
   LOG(debug)
     << "LeaseSet: local LeaseSet of " << tunnels.size() << " leases created";
+#ifdef WITH_GET_CORPUS
+  kovri::core::OutputFuzzData("leaseset", m_Buffer.get(), m_BufferLen);
+#endif  // WITH_GET_CORPUS
   ReadFromBuffer();
 }
 
 void LeaseSet::Update(
     const std::uint8_t* buf,
     std::size_t len) {
+#ifdef WITH_GET_CORPUS
+  kovri::core::OutputFuzzData("leaseset", buf, len);
+#endif  // WITH_GET_CORPUS
   m_Leases.clear();
   if (len > m_BufferLen) {
     m_Buffer = std::make_unique<std::uint8_t[]>(len);

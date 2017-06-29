@@ -346,6 +346,17 @@ const boost::filesystem::path& GetDataPath();
 /// @return the default directory for app data
 boost::filesystem::path GetDefaultDataPath();
 
+#ifdef WITH_GET_CORPUS
+/// @brief Save buffer to file for fuzz testing
+/// @param type to have distinct limits on the number of files produced
+/// @param buf buffer to be saved
+/// @param len length of data to be saved
+void OutputFuzzData(
+    const std::string& type,
+    const std::uint8_t* buf,
+    std::size_t len);
+#endif  // WITH_GET_CORPUS
+
 }  // namespace core
 }  // namespace kovri
 

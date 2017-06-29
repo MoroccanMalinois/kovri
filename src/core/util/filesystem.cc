@@ -40,6 +40,7 @@
 
 #include <tuple>
 
+#include "core/crypto/rand.h"
 #include "core/router/context.h"
 
 namespace kovri {
@@ -253,6 +254,64 @@ boost::filesystem::path GetDefaultDataPath() {
 #endif
 #endif
 }
+
+#ifdef WITH_GET_CORPUS
+void OutputFuzzData(
+    const std::string& type,
+    const std::uint8_t* buf,
+    std::size_t len)
+{
+  // Limit numbers of output per type
+  static std::map<std::string, int> counters;
+  static std::map<std::string, int> limits = {
+      {"leaseset", 20},
+      {"httpmessage", 10},
+      {"ssu-packet", 100},
+      {"ssu-header", 100},
+      {"ssu-session-request", 100},
+      {"ssu-session-created", 100},
+      {"ssu-session-confirmed", 100},
+      {"ssu-relay-request", 100},
+      {"ssu-relay-response", 100},
+      {"ssu-relay-intro", 100},
+      {"ssu-data", 100},
+      {"ssu-peer-test", 100},
+  };
+  if (limits.find(type) == limits.end())
+    {
+      LOG(error) << __func__ << " type " << type << " not in limits !";
+      return;
+    }
+  if (counters.find(type) == counters.end())
+    {
+      counters[type] = 0;
+    }
+  int count = counters[type]++;
+  LOG(debug) << __func__ << " type " << type << " count " << count;
+  if (count >= limits[type])
+    {
+      // If not all limits reached, return. Exit otherwise
+      for (const auto& it : limits)
+        {
+          if (counters.find(it.first) == counters.end()
+              || counters[it.first] < it.second)
+            return;
+        }
+      exit(0);
+    }
+  // Generate file name : prefix-(16 random numbers)
+  std::string suffix(16 + 1, 0);
+  std::generate_n(suffix.begin(), 16, [](...) {
+    return kovri::core::RandInRange32(0, 9) + 48;
+  });
+  // Output to file
+  OutputFileStream output(
+      (kovri::core::GetLogsPath() / (type + std::string("-") + suffix))
+          .string(),
+      std::ios::out | std::ios::binary);
+  output.Write(buf, len);
+}
+#endif  // WITH_GET_CORPUS
 
 }  // namespace core
 }  // namespace kovri

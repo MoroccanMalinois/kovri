@@ -237,7 +237,14 @@ void HTTPProxyHandler::HandleSockRecv(
   CreateStream();
 }
 
-bool HTTPMessage::HandleData(const std::string& protocol_string) {
+bool HTTPMessage::HandleData(const std::string& protocol_string)
+{
+#ifdef WITH_GET_CORPUS
+  kovri::core::OutputFuzzData(
+      "httpmessage",
+      reinterpret_cast<const std::uint8_t*>(protocol_string.c_str()),
+      protocol_string.size());
+#endif  // WITH_GET_CORPUS
   std::vector<std::string> header_body;
   std::vector<std::string> tokens_header_body;
   // get header info
