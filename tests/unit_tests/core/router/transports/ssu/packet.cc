@@ -84,6 +84,8 @@ struct SSUTestVectorsFixture : public IdentityExFixture
   const std::uint32_t m_RelayTag = 1234567890;
   // IPv4
   std::array<std::uint8_t, 4> m_Address{{0x0A, 0x0B, 0x0C, 0x0D}};
+  // Nonce
+  const std::uint32_t m_Nonce = 0x01010101;
 
   std::array<std::uint8_t, 37> header_plain {{
     // 16 byte MAC (not an actual one)
@@ -465,7 +467,7 @@ BOOST_AUTO_TEST_CASE(RelayRequestPlain) {
   BOOST_CHECK_EQUAL(packet->GetPort(), m_Port);
   BOOST_CHECK_EQUAL(*packet->GetChallenge(), 0);
   BOOST_CHECK_EQUAL(*packet->GetIntroKey(), 0);
-  BOOST_CHECK_EQUAL(packet->GetNonce(), 0x01010101);
+  BOOST_CHECK_EQUAL(packet->GetNonce(), m_Nonce);
   BOOST_CHECK_EQUAL(packet->GetSize(), relay_request.size());
 }
 
@@ -486,7 +488,7 @@ BOOST_AUTO_TEST_CASE(RelayResponsePlain) {
       m_Address.data(),
       m_Address.data() + m_Address.size());
   BOOST_CHECK_EQUAL(packet->GetPortAlice(), m_Port);
-  BOOST_CHECK_EQUAL(packet->GetNonce(), 0x01010101);
+  BOOST_CHECK_EQUAL(packet->GetNonce(), m_Nonce);
   BOOST_CHECK_EQUAL(packet->GetSize(), relay_response.size());
 }
 
