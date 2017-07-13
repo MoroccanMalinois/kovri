@@ -338,8 +338,9 @@ std::uint32_t SSURelayRequestPacket::GetRelayTag() const {
 }
 
 void SSURelayRequestPacket::SetIPAddress(
-    std::uint8_t* address,
-    std::size_t size) {
+    const std::uint8_t* address,
+    std::size_t size)
+{
   m_IPAddress = address;
   m_IPAddressSize = size;
 }
@@ -348,15 +349,26 @@ std::uint8_t const* SSURelayRequestPacket::GetIPAddress() const {
   return m_IPAddress;
 }
 
+std::size_t SSURelayRequestPacket::GetIPAddressSize() const
+{
+  return m_IPAddressSize;
+}
+
 void SSURelayRequestPacket::SetChallenge(
-    std::uint8_t* challenge,
-    std::size_t size) {
+    const std::uint8_t* challenge,
+    std::size_t size)
+{
   m_Challenge = challenge;
   m_ChallengeSize = size;
 }
 
 std::uint8_t const* SSURelayRequestPacket::GetChallenge() const {
   return m_Challenge;
+}
+
+std::size_t SSURelayRequestPacket::GetChallengeSize() const
+{
+  return m_ChallengeSize;
 }
 
 void SSURelayRequestPacket::SetPort(
@@ -368,8 +380,8 @@ std::uint16_t SSURelayRequestPacket::GetPort() const {
   return m_Port;
 }
 
-void SSURelayRequestPacket::SetIntroKey(
-    std::uint8_t* key) {
+void SSURelayRequestPacket::SetIntroKey(const std::uint8_t* key)
+{
   m_IntroKey = key;
 }
 
