@@ -631,44 +631,30 @@ void SSUSession::SendRelayRequest(
       << __func__ << ": SSU is not supported";
     return;
   }
-  std::array<std::uint8_t, 96 + GetType(SSUSize::BufferMargin)> buf{
-      {}};  // TODO(unassigned): document size values
-  auto payload = buf.data() + GetType(SSUSize::HeaderMin);
-  htobe32buf(payload, introducer_tag);
-  payload += 4;
-  *payload = 0;  // no address
-  payload++;
-  htobuf16(payload, 0);  // port = 0
-  payload += 2;
-  *payload = 0;  // challenge
-  payload++;
-  memcpy(payload, (const std::uint8_t *)address->key, 32);
-  payload += 32;
-  htobe32buf(payload, kovri::core::Rand<std::uint32_t>());  // nonce
+  SSURelayRequestPacket packet;
+  packet.SetHeader(std::make_unique<SSUHeader>(SSUPayloadType::RelayRequest));
   std::array<std::uint8_t, GetType(SSUSize::IV)> iv;
   kovri::core::RandBytes(iv.data(), iv.size());
-  auto relay_request = GetType(SSUPayloadType::RelayRequest);
-  if (m_State == SessionState::Established) {
-    FillHeaderAndEncrypt(
-        relay_request,
-        buf.data(),
-        96,
-        m_SessionKey,
-        iv.data(),
-        m_MACKey);
-  } else {
-    FillHeaderAndEncrypt(
-        relay_request,
-        buf.data(),
-        96,
-        introducer_key,
-        iv.data(),
-        introducer_key);
-  }
-  m_Server.Send(
-      buf.data(),
-      96,
-      GetRemoteEndpoint());
+  packet.GetHeader()->SetIV(iv.data());
+  packet.SetRelayTag(introducer_tag);
+  // Note: the IP length is always 0 and the port is always 0
+  // the receiver should use the packet's source address and port
+  // TODO(unassigned): If IPv6, Alice must include her IPv4 address and port
+  packet.SetIPAddress(nullptr, 0);
+  packet.SetPort(0);
+  // Note: Challenge is unimplemented (java), challenge size is always zero
+  packet.SetChallenge(nullptr, 0);
+  packet.SetIntroKey(address->key());
+  packet.SetNonce(kovri::core::Rand<std::uint32_t>());
+  const std::size_t packet_size = SSUPacketBuilder::GetPaddedSize(packet.GetSize());
+  const std::size_t buffer_size = packet_size + GetType(SSUSize::BufferMargin);
+  auto buffer = std::make_unique<std::uint8_t[]>(buffer_size);
+  if (m_State == SessionState::Established)
+    WriteAndEncrypt(&packet, buffer.get(), buffer_size, m_SessionKey, m_MACKey);
+  else
+    WriteAndEncrypt(
+        &packet, buffer.get(), buffer_size, introducer_key, introducer_key);
+  Send(buffer.get(), packet_size);
 }
 
 /**
