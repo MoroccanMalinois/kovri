@@ -79,6 +79,9 @@ struct SSUTestVectorsFixture : public IdentityExFixture
   // Signed on time (0x57, 0x69, 0x04, 0xAA)
   const std::uint32_t m_SignedOnTime = 1466500266;
 
+  // Port (0x23, 0x28)
+  const std::uint16_t m_Port = 9000;
+
   std::array<std::uint8_t, 37> header_plain {{
     // 16 byte MAC (not an actual one)
     0x0a, 0xb0, 0x00, 0x00, 0x00, 0x00, 0xd0, 0xe0,
@@ -402,7 +405,7 @@ BOOST_AUTO_TEST_CASE(SessionCreatedPlain) {
   BOOST_CHECK_NO_THROW(packet = parser.ParseSessionCreated());
   BOOST_CHECK_EQUAL(packet->GetIPAddressSize(), 3);
   BOOST_CHECK_EQUAL(*packet->GetIPAddress(), 0x0A);
-  BOOST_CHECK_EQUAL(packet->GetPort(), 9000);
+  BOOST_CHECK_EQUAL(packet->GetPort(), m_Port);
   BOOST_CHECK_EQUAL(packet->GetRelayTag(), 1234567890);
   BOOST_CHECK_EQUAL(packet->GetSignedOnTime(), m_SignedOnTime);
   BOOST_CHECK_EQUAL(*packet->GetSignature(), 0x00);
@@ -453,7 +456,7 @@ BOOST_AUTO_TEST_CASE(RelayRequestPlain) {
       packet->GetIPAddress() + expected_address.size(),
       expected_address.data(),
       expected_address.data() + expected_address.size());
-  BOOST_CHECK_EQUAL(packet->GetPort(), 9000);
+  BOOST_CHECK_EQUAL(packet->GetPort(), m_Port);
   BOOST_CHECK_EQUAL(*packet->GetChallenge(), 0);
   BOOST_CHECK_EQUAL(*packet->GetIntroKey(), 0);
   BOOST_CHECK_EQUAL(packet->GetNonce(), 0x01010101);
@@ -471,13 +474,13 @@ BOOST_AUTO_TEST_CASE(RelayResponsePlain) {
       packet->GetIPAddressCharlie() + expected_address.size(),
       expected_address.data(),
       expected_address.data() + expected_address.size());
-  BOOST_CHECK_EQUAL(packet->GetPortCharlie(), 9000);
+  BOOST_CHECK_EQUAL(packet->GetPortCharlie(), m_Port);
   BOOST_CHECK_EQUAL_COLLECTIONS(
       packet->GetIPAddressAlice(),
       packet->GetIPAddressAlice() + expected_address.size(),
       expected_address.data(),
       expected_address.data() + expected_address.size());
-  BOOST_CHECK_EQUAL(packet->GetPortAlice(), 9000);
+  BOOST_CHECK_EQUAL(packet->GetPortAlice(), m_Port);
   BOOST_CHECK_EQUAL(packet->GetNonce(), 0x01010101);
   BOOST_CHECK_EQUAL(packet->GetSize(), relay_response.size());
 }
@@ -493,7 +496,7 @@ BOOST_AUTO_TEST_CASE(RelayIntroPlain) {
       packet->GetIPAddress() + expected_address.size(),
       expected_address.data(),
       expected_address.data() + expected_address.size());
-  BOOST_CHECK_EQUAL(packet->GetPort(), 9000);
+  BOOST_CHECK_EQUAL(packet->GetPort(), m_Port);
   BOOST_CHECK_EQUAL(*packet->GetChallenge(), 0);
   BOOST_CHECK_EQUAL(packet->GetSize(), relay_intro.size());
 }
@@ -586,7 +589,7 @@ BOOST_AUTO_TEST_CASE(SessionCreatedPlain) {
   SSUSessionCreatedPacket packet;
   packet.SetDhY(&session_created.at(0));
   packet.SetIPAddress(&session_created.at(257), 3);
-  packet.SetPort(9000);
+  packet.SetPort(m_Port);
   packet.SetRelayTag(1234567890);
   packet.SetSignedOnTime(m_SignedOnTime);
   packet.SetSignature(&session_created.at(270), 40);
