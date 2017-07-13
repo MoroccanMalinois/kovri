@@ -956,8 +956,19 @@ void SSUPacketBuilder::WriteSessionConfirmed(
   WriteData(packet->GetSignature(), signature_size);
 }
 
-void SSUPacketBuilder::WriteRelayRequest(
-    SSURelayRequestPacket* /*packet*/) {}
+void SSUPacketBuilder::WriteRelayRequest(SSURelayRequestPacket* packet)
+{
+  WriteUInt32(packet->GetRelayTag());
+  WriteUInt8(packet->GetIPAddressSize());
+  if(packet->GetIPAddressSize())
+    WriteData(packet->GetIPAddress(), packet->GetIPAddressSize());
+  WriteUInt16(packet->GetPort());
+  WriteUInt8(packet->GetChallengeSize());
+  if(packet->GetChallengeSize())
+    WriteData(packet->GetChallenge(), packet->GetChallengeSize());
+  WriteData(packet->GetIntroKey(), GetType(SSUSize::IntroKey));
+  WriteUInt32(packet->GetNonce());
+}
 
 void SSUPacketBuilder::WriteRelayResponse(
     SSURelayResponsePacket* /*packet*/) {}
