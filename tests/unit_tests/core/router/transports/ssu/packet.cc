@@ -36,6 +36,7 @@
 #include <memory>
 
 #include "core/router/transports/ssu/packet.h"
+#include "core/util/byte_stream.h"
 #include "tests/unit_tests/core/router/identity.h"
 
 namespace core = kovri::core;
@@ -86,6 +87,8 @@ struct SSUTestVectorsFixture : public IdentityExFixture
   std::array<std::uint8_t, 4> m_Address{{0x0A, 0x0B, 0x0C, 0x0D}};
   // Nonce
   const std::uint32_t m_Nonce = 0x01010101;
+  // Challenge
+  const std::array<std::uint8_t, 4> m_Challenge{{0x05, 0x06, 0x07, 0x08}};
 
   std::array<std::uint8_t, 37> header_plain {{
     // 16 byte MAC (not an actual one)
@@ -227,7 +230,7 @@ struct SSUTestVectorsFixture : public IdentityExFixture
     // 1 byte challenge size
     0x04,
     // 4 byte challenge
-    0x00, 0x00, 0x00, 0x00,
+    0x05, 0x06, 0x07, 0x08,
     // 32 byte intro key
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -461,11 +464,15 @@ BOOST_AUTO_TEST_CASE(RelayRequestPlain) {
   BOOST_CHECK_EQUAL(packet->GetRelayTag(), m_RelayTag);
   BOOST_CHECK_EQUAL_COLLECTIONS(
       packet->GetIPAddress(),
-      packet->GetIPAddress() + m_Address.size(),
+      packet->GetIPAddress() + packet->GetIPAddressSize(),
       m_Address.data(),
       m_Address.data() + m_Address.size());
   BOOST_CHECK_EQUAL(packet->GetPort(), m_Port);
-  BOOST_CHECK_EQUAL(*packet->GetChallenge(), 0);
+  BOOST_CHECK_EQUAL_COLLECTIONS(
+      packet->GetChallenge(),
+      packet->GetChallenge() + packet->GetChallengeSize(),
+      m_Challenge.data(),
+      m_Challenge.data() + m_Challenge.size());
   BOOST_CHECK_EQUAL(*packet->GetIntroKey(), 0);
   BOOST_CHECK_EQUAL(packet->GetNonce(), m_Nonce);
   BOOST_CHECK_EQUAL(packet->GetSize(), relay_request.size());
@@ -648,6 +655,27 @@ BOOST_AUTO_TEST_CASE(SessionConfirmedPlain)
       buffer.get() + packet.GetSize(),
       session_confirmed.data() + sig_position,
       session_confirmed.data() + session_confirmed.size());
+}
+
+BOOST_AUTO_TEST_CASE(RelayRequestPlain)
+{
+  core::SSURelayRequestPacket packet;
+  packet.SetRelayTag(m_RelayTag);
+  packet.SetIPAddress(m_Address.data(), m_Address.size());
+  packet.SetPort(m_Port);
+  packet.SetChallenge(m_Challenge.data(), m_Challenge.size());
+  const std::array<std::uint8_t, core::GetType(core::SSUSize::IntroKey)>
+      intro_key{{}};
+  packet.SetIntroKey(intro_key.data());
+  packet.SetNonce(m_Nonce);
+  auto buffer = std::make_unique<std::uint8_t[]>(packet.GetSize());
+  core::SSUPacketBuilder builder(buffer.get(), packet.GetSize());
+  builder.WriteRelayRequest(&packet);
+  BOOST_CHECK_EQUAL_COLLECTIONS(
+      buffer.get(),
+      buffer.get() + packet.GetSize(),
+      relay_request.data(),
+      relay_request.data() + relay_request.size());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
