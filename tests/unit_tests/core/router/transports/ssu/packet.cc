@@ -478,20 +478,20 @@ BOOST_AUTO_TEST_CASE(RelayRequestPlain) {
   BOOST_CHECK_EQUAL(packet->GetSize(), relay_request.size());
 }
 
-BOOST_AUTO_TEST_CASE(RelayResponsePlain) {
-  using namespace kovri::core;
-  SSUPacketParser parser(relay_response.data(), relay_response.size());
-  std::unique_ptr<SSURelayResponsePacket> packet;
+BOOST_AUTO_TEST_CASE(RelayResponsePlain)
+{
+  core::SSUPacketParser parser(relay_response.data(), relay_response.size());
+  std::unique_ptr<core::SSURelayResponsePacket> packet;
   BOOST_CHECK_NO_THROW(packet = parser.ParseRelayResponse());
   BOOST_CHECK_EQUAL_COLLECTIONS(
       packet->GetIPAddressCharlie(),
-      packet->GetIPAddressCharlie() + m_Address.size(),
+      packet->GetIPAddressCharlie() + packet->GetIPAddressCharlieSize(),
       m_Address.data(),
       m_Address.data() + m_Address.size());
   BOOST_CHECK_EQUAL(packet->GetPortCharlie(), m_Port);
   BOOST_CHECK_EQUAL_COLLECTIONS(
       packet->GetIPAddressAlice(),
-      packet->GetIPAddressAlice() + m_Address.size(),
+      packet->GetIPAddressAlice() + packet->GetIPAddressAliceSize(),
       m_Address.data(),
       m_Address.data() + m_Address.size());
   BOOST_CHECK_EQUAL(packet->GetPortAlice(), m_Port);
@@ -676,6 +676,24 @@ BOOST_AUTO_TEST_CASE(RelayRequestPlain)
       buffer.get() + packet.GetSize(),
       relay_request.data(),
       relay_request.data() + relay_request.size());
+}
+
+BOOST_AUTO_TEST_CASE(RelayResponsePlain)
+{
+  core::SSURelayResponsePacket packet;
+  packet.SetIPAddressCharlie(m_Address.data(), m_Address.size());
+  packet.SetPortCharlie(m_Port);
+  packet.SetIPAddressAlice(m_Address.data(), m_Address.size());
+  packet.SetPortAlice(m_Port);
+  packet.SetNonce(m_Nonce);
+  auto buffer = std::make_unique<std::uint8_t[]>(packet.GetSize());
+  core::SSUPacketBuilder builder(buffer.get(), packet.GetSize());
+  builder.WriteRelayResponse(&packet);
+  BOOST_CHECK_EQUAL_COLLECTIONS(
+      buffer.get(),
+      buffer.get() + packet.GetSize(),
+      relay_response.data(),
+      relay_response.data() + relay_response.size());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
