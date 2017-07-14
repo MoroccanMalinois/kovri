@@ -489,6 +489,9 @@ class SSURelayResponsePacket : public SSUPacket {
   /// @return Pointer to Charlie's IP address that was previously set when parsed
   std::uint8_t const* GetIPAddressCharlie() const;
 
+  /// @return Charlie's IP address size
+  std::size_t GetIPAddressCharlieSize() const;
+
   /// @brief Sets Charlies's 2 byte port number
   /// @note Assumes content is valid (based on position)
   /// @param port Charlie's port number

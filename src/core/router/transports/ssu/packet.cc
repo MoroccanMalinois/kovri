@@ -451,6 +451,11 @@ std::uint8_t const* SSURelayResponsePacket::GetIPAddressCharlie() const {
   return m_IPAddressCharlie;
 }
 
+std::size_t SSURelayResponsePacket::GetIPAddressCharlieSize() const
+{
+  return m_IPAddressCharlieSize;
+}
+
 void SSURelayResponsePacket::SetPortAlice(
     std::uint16_t port) {
   m_PortAlice = port;
@@ -970,8 +975,16 @@ void SSUPacketBuilder::WriteRelayRequest(SSURelayRequestPacket* packet)
   WriteUInt32(packet->GetNonce());
 }
 
-void SSUPacketBuilder::WriteRelayResponse(
-    SSURelayResponsePacket* /*packet*/) {}
+void SSUPacketBuilder::WriteRelayResponse(SSURelayResponsePacket* packet)
+{
+  WriteUInt8(packet->GetIPAddressCharlieSize());
+  WriteData(packet->GetIPAddressCharlie(), packet->GetIPAddressCharlieSize());
+  WriteUInt16(packet->GetPortCharlie());
+  WriteUInt8(packet->GetIPAddressAliceSize());
+  WriteData(packet->GetIPAddressAlice(), packet->GetIPAddressAliceSize());
+  WriteUInt16(packet->GetPortAlice());
+  WriteUInt32(packet->GetNonce());
+}
 
 void SSUPacketBuilder::WriteRelayIntro(
     SSURelayIntroPacket* /*packet*/) {}
