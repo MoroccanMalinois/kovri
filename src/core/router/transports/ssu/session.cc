@@ -690,9 +690,6 @@ void SSUSession::SendRelayResponse(
     const boost::asio::ip::udp::endpoint& from,
     const std::uint8_t* intro_key,
     const boost::asio::ip::udp::endpoint& to) {
-  std::array<std::uint8_t, 80 + GetType(SSUSize::BufferMargin)> buf{
-      {}};  // 64 Alice's ipv4 and 80 Alice's ipv6
-  auto payload = buf.data() + GetType(SSUSize::HeaderMin);
   // Charlie's address always v4
   if (!to.address().is_v4()) {
     LOG(error)
@@ -700,56 +697,29 @@ void SSUSession::SendRelayResponse(
       << __func__ << ": Charlie's IP must be V4";
     return;
   }
-  *payload = 4;
-  payload++;  // size
-  htobe32buf(payload, to.address().to_v4().to_ulong());  // Charlie's IP
-  payload += 4;  // address
-  htobe16buf(payload, to.port());  // Charlie's port
-  payload += 2;  // port
+  SSURelayResponsePacket packet;
+  // Header
+  packet.SetHeader(std::make_unique<SSUHeader>(SSUPayloadType::RelayResponse));
+  std::array<std::uint8_t, GetType(SSUSize::IV)> iv;
+  kovri::core::RandBytes(iv.data(), iv.size());
+  packet.GetHeader()->SetIV(iv.data());
+  // Charlie
+  auto charlie_ip(core::AddressToByteVector(to.address()));
+  packet.SetIPAddressCharlie(charlie_ip->data(), charlie_ip->size());
+  packet.SetPortCharlie(to.port());
   // Alice
-  auto is_IPv4 = from.address().is_v4();  // Alice's
-  if (is_IPv4) {
-    *payload = 4;
-    payload++;  // size
-    // Alice's IP V4
-    memcpy(payload, from.address().to_v4().to_bytes().data(), 4);
-    payload += 4;  // address
-  } else {
-    *payload = 16;
-    payload++;  // size
-    // Alice's IP V6
-    memcpy(payload, from.address().to_v6().to_bytes().data(), 16);
-    payload += 16;  // address
-  }
-  htobe16buf(payload, from.port());  // Alice's port
-  payload += 2;  // port
-  htobe32buf(payload, nonce);
-  auto relay_response = GetType(SSUPayloadType::RelayResponse);
-  if (m_State == SessionState::Established) {
-    // encrypt with session key
-    FillHeaderAndEncrypt(
-        relay_response,
-        buf.data(),
-        is_IPv4 ? 64 : 80);
-    Send(
-        buf.data(),
-        is_IPv4 ? 64 : 80);
-  } else {
-    // encrypt with Alice's intro key
-    std::array<std::uint8_t, GetType(SSUSize::IV)> iv;
-    kovri::core::RandBytes(iv.data(), iv.size());
-    FillHeaderAndEncrypt(
-        relay_response,
-        buf.data(),
-        is_IPv4 ? 64 : 80,
-        intro_key,
-        iv.data(),
-        intro_key);
-    m_Server.Send(
-        buf.data(),
-        is_IPv4 ? 64 : 80,
-        from);
-  }
+  auto alice_ip(core::AddressToByteVector(from.address()));
+  packet.SetIPAddressAlice(alice_ip->data(), alice_ip->size());
+  packet.SetPortAlice(from.port());
+  packet.SetNonce(nonce);
+  const std::size_t packet_size = SSUPacketBuilder::GetPaddedSize(packet.GetSize());
+  const std::size_t buffer_size = packet_size + GetType(SSUSize::BufferMargin);
+  auto buffer = std::make_unique<std::uint8_t[]>(buffer_size);
+  if (m_State == SessionState::Established)
+    WriteAndEncrypt(&packet, buffer.get(), buffer_size, m_SessionKey, m_MACKey);
+  else  // encrypt with Alice's intro key
+    WriteAndEncrypt(&packet, buffer.get(), buffer_size, intro_key, intro_key);
+  Send(buffer.get(), packet_size);
   LOG(debug) << "SSUSession: RelayResponse sent";
 }
 
