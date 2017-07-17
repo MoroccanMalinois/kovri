@@ -82,6 +82,8 @@ struct SSUTestVectorsFixture : public IdentityExFixture
   const std::uint16_t m_Port = 9000;
   // Relay tag (0x49, 0x96, 0x02, 0xD2)
   const std::uint32_t m_RelayTag = 1234567890;
+  // IPv4
+  std::array<std::uint8_t, 4> m_Address{{0x0A, 0x0B, 0x0C, 0x0D}};
 
   std::array<std::uint8_t, 37> header_plain {{
     // 16 byte MAC (not an actual one)
@@ -153,7 +155,7 @@ struct SSUTestVectorsFixture : public IdentityExFixture
     0x0A, 0x0B, 0x0C, 0x0D
   }};
 
-  std::array<std::uint8_t, 310> session_created {{
+  std::array<std::uint8_t, 311> session_created {{
     // 256 bytes Y (as in DH)
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -188,9 +190,9 @@ struct SSUTestVectorsFixture : public IdentityExFixture
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     // 1 byte IP address size
-    0x03,
-    // 3 bytes IP address
-    0x0A, 0x0B, 0x0C,
+    0x04,
+    // 4 bytes IP address
+    0x0A, 0x0B, 0x0C, 0x0D,
     // Port (9000)
     0x23, 0x28,
     // Relay tag (1234567890) 
@@ -404,8 +406,12 @@ BOOST_AUTO_TEST_CASE(SessionCreatedPlain) {
   SSUPacketParser parser(session_created.data(), session_created.size());
   std::unique_ptr<SSUSessionCreatedPacket> packet;
   BOOST_CHECK_NO_THROW(packet = parser.ParseSessionCreated());
-  BOOST_CHECK_EQUAL(packet->GetIPAddressSize(), 3);
-  BOOST_CHECK_EQUAL(*packet->GetIPAddress(), 0x0A);
+  BOOST_CHECK_EQUAL(packet->GetIPAddressSize(), 4);
+  BOOST_CHECK_EQUAL_COLLECTIONS(
+      packet->GetIPAddress(),
+      packet->GetIPAddress() + packet->GetIPAddressSize(),
+      m_Address.data(),
+      m_Address.data() + m_Address.size());
   BOOST_CHECK_EQUAL(packet->GetPort(), m_Port);
   BOOST_CHECK_EQUAL(packet->GetRelayTag(), m_RelayTag);
   BOOST_CHECK_EQUAL(packet->GetSignedOnTime(), m_SignedOnTime);
@@ -451,12 +457,11 @@ BOOST_AUTO_TEST_CASE(RelayRequestPlain) {
   std::unique_ptr<SSURelayRequestPacket> packet;
   BOOST_CHECK_NO_THROW(packet = parser.ParseRelayRequest());
   BOOST_CHECK_EQUAL(packet->GetRelayTag(), m_RelayTag);
-  const std::array<std::uint8_t, 4> expected_address {{ 0x0A, 0x0B, 0x0C, 0x0D }};
   BOOST_CHECK_EQUAL_COLLECTIONS(
       packet->GetIPAddress(),
-      packet->GetIPAddress() + expected_address.size(),
-      expected_address.data(),
-      expected_address.data() + expected_address.size());
+      packet->GetIPAddress() + m_Address.size(),
+      m_Address.data(),
+      m_Address.data() + m_Address.size());
   BOOST_CHECK_EQUAL(packet->GetPort(), m_Port);
   BOOST_CHECK_EQUAL(*packet->GetChallenge(), 0);
   BOOST_CHECK_EQUAL(*packet->GetIntroKey(), 0);
@@ -469,18 +474,17 @@ BOOST_AUTO_TEST_CASE(RelayResponsePlain) {
   SSUPacketParser parser(relay_response.data(), relay_response.size());
   std::unique_ptr<SSURelayResponsePacket> packet;
   BOOST_CHECK_NO_THROW(packet = parser.ParseRelayResponse());
-  const std::array<std::uint8_t, 4> expected_address {{ 0x0A, 0x0B, 0x0C, 0x0D }};
   BOOST_CHECK_EQUAL_COLLECTIONS(
       packet->GetIPAddressCharlie(),
-      packet->GetIPAddressCharlie() + expected_address.size(),
-      expected_address.data(),
-      expected_address.data() + expected_address.size());
+      packet->GetIPAddressCharlie() + m_Address.size(),
+      m_Address.data(),
+      m_Address.data() + m_Address.size());
   BOOST_CHECK_EQUAL(packet->GetPortCharlie(), m_Port);
   BOOST_CHECK_EQUAL_COLLECTIONS(
       packet->GetIPAddressAlice(),
-      packet->GetIPAddressAlice() + expected_address.size(),
-      expected_address.data(),
-      expected_address.data() + expected_address.size());
+      packet->GetIPAddressAlice() + m_Address.size(),
+      m_Address.data(),
+      m_Address.data() + m_Address.size());
   BOOST_CHECK_EQUAL(packet->GetPortAlice(), m_Port);
   BOOST_CHECK_EQUAL(packet->GetNonce(), 0x01010101);
   BOOST_CHECK_EQUAL(packet->GetSize(), relay_response.size());
@@ -491,12 +495,11 @@ BOOST_AUTO_TEST_CASE(RelayIntroPlain) {
   SSUPacketParser parser(relay_intro.data(), relay_intro.size());
   std::unique_ptr<SSURelayIntroPacket> packet;
   BOOST_CHECK_NO_THROW(packet = parser.ParseRelayIntro());
-  const std::array<std::uint8_t, 4> expected_address {{ 0x0A, 0x0B, 0x0C, 0x0D }};
   BOOST_CHECK_EQUAL_COLLECTIONS(
       packet->GetIPAddress(),
-      packet->GetIPAddress() + expected_address.size(),
-      expected_address.data(),
-      expected_address.data() + expected_address.size());
+      packet->GetIPAddress() + m_Address.size(),
+      m_Address.data(),
+      m_Address.data() + m_Address.size());
   BOOST_CHECK_EQUAL(packet->GetPort(), m_Port);
   BOOST_CHECK_EQUAL(*packet->GetChallenge(), 0);
   BOOST_CHECK_EQUAL(packet->GetSize(), relay_intro.size());
@@ -573,7 +576,7 @@ BOOST_AUTO_TEST_CASE(SessionRequestPlain) {
 
   SSUSessionRequestPacket packet;
   packet.SetDhX(&session_request.at(0));
-  packet.SetIPAddress(&session_request.at(257), 4);
+  packet.SetIPAddress(m_Address.data(), m_Address.size());
   auto buffer = std::make_unique<std::uint8_t[]>(packet.GetSize());
   SSUPacketBuilder builder(buffer.get(), packet.GetSize());
   builder.WriteSessionRequest(&packet);
@@ -589,11 +592,11 @@ BOOST_AUTO_TEST_CASE(SessionCreatedPlain) {
 
   SSUSessionCreatedPacket packet;
   packet.SetDhY(&session_created.at(0));
-  packet.SetIPAddress(&session_created.at(257), 3);
+  packet.SetIPAddress(m_Address.data(), m_Address.size());
   packet.SetPort(m_Port);
   packet.SetRelayTag(m_RelayTag);
   packet.SetSignedOnTime(m_SignedOnTime);
-  packet.SetSignature(&session_created.at(270), 40);
+  packet.SetSignature(&session_created.at(271), 40);
   auto buffer = std::make_unique<std::uint8_t[]>(packet.GetSize());
   SSUPacketBuilder builder(buffer.get(), packet.GetSize());
   builder.WriteSessionCreated(&packet);
