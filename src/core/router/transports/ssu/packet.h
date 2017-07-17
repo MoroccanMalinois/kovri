@@ -414,14 +414,13 @@ class SSURelayRequestPacket : public SSUPacket {
   /// @note Assumes content is valid (based on position)
   /// @param address Pointer to Alice's IP address
   /// @param size Alice's IP address size
-  void SetIPAddress(
-      std::uint8_t* address,
-      std::size_t size);
+  void SetIPAddress(const std::uint8_t* address, std::size_t size);
 
   /// @return Pointer to Alice's IP address that was previously set when parsed
   std::uint8_t const* GetIPAddress() const;
 
-  // TODO(unassigned): GetIPAddressSize() ?
+  /// @return Ip address size
+  std::size_t GetIPAddressSize() const;
 
   /// @brief Sets Alice's 2 byte port number
   /// @note Assumes content is valid (based on position)
@@ -437,19 +436,19 @@ class SSURelayRequestPacket : public SSUPacket {
   /// @note Assumes content is valid (based on position)
   /// @param challenge Pointer to challenge size
   /// @param size Size of challenge size
-  void SetChallenge(
-      std::uint8_t* challenge,
-      std::size_t size);
+  void SetChallenge(const std::uint8_t* challenge, std::size_t size);
 
   /// @return Pointer to challenge that was previously set when parsed
   std::uint8_t const* GetChallenge() const;
+
+  /// @return Challenge size
+  std::size_t GetChallengeSize() const;
 
   /// @brief Sets Alice's 32-byte introduction key
   ///   (so Bob can reply with Charlie's info)
   /// @note Assumes content is valid (based on position)
   /// @param key Pointer to intro key
-  void SetIntroKey(
-      std::uint8_t* key);
+  void SetIntroKey(const std::uint8_t* key);
 
   /// @return Pointer to intro key that was previously set when parsed
   std::uint8_t const* GetIntroKey() const;
@@ -469,7 +468,7 @@ class SSURelayRequestPacket : public SSUPacket {
  private:
   std::uint32_t m_RelayTag, m_Nonce;
   std::size_t m_IPAddressSize, m_ChallengeSize;
-  std::uint8_t* m_IPAddress, *m_Challenge, *m_IntroKey;
+  const std::uint8_t *m_IPAddress, *m_Challenge, *m_IntroKey;
   std::uint16_t m_Port;
 };
 
