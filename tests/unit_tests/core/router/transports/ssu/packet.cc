@@ -78,9 +78,10 @@ struct SSUTestVectorsFixture : public IdentityExFixture
 
   // Signed on time (0x57, 0x69, 0x04, 0xAA)
   const std::uint32_t m_SignedOnTime = 1466500266;
-
   // Port (0x23, 0x28)
   const std::uint16_t m_Port = 9000;
+  // Relay tag (0x49, 0x96, 0x02, 0xD2)
+  const std::uint32_t m_RelayTag = 1234567890;
 
   std::array<std::uint8_t, 37> header_plain {{
     // 16 byte MAC (not an actual one)
@@ -211,8 +212,8 @@ struct SSUTestVectorsFixture : public IdentityExFixture
   std::array<std::uint8_t, 512> session_confirmed;
 
   std::array<std::uint8_t, 52> relay_request {{
-    // 4 byte relay tag
-    0x01, 0x02, 0x03, 0x04,
+    // 4 byte relay tag (1234567890)
+    0x49, 0x96, 0x02, 0xD2,
     // 1 byte address size
     0x04,
     // 4 byte IP address
@@ -406,7 +407,7 @@ BOOST_AUTO_TEST_CASE(SessionCreatedPlain) {
   BOOST_CHECK_EQUAL(packet->GetIPAddressSize(), 3);
   BOOST_CHECK_EQUAL(*packet->GetIPAddress(), 0x0A);
   BOOST_CHECK_EQUAL(packet->GetPort(), m_Port);
-  BOOST_CHECK_EQUAL(packet->GetRelayTag(), 1234567890);
+  BOOST_CHECK_EQUAL(packet->GetRelayTag(), m_RelayTag);
   BOOST_CHECK_EQUAL(packet->GetSignedOnTime(), m_SignedOnTime);
   BOOST_CHECK_EQUAL(*packet->GetSignature(), 0x00);
   BOOST_CHECK_EQUAL(packet->GetSize(), session_created.size());
@@ -449,7 +450,7 @@ BOOST_AUTO_TEST_CASE(RelayRequestPlain) {
   SSUPacketParser parser(relay_request.data(), relay_request.size());
   std::unique_ptr<SSURelayRequestPacket> packet;
   BOOST_CHECK_NO_THROW(packet = parser.ParseRelayRequest());
-  BOOST_CHECK_EQUAL(packet->GetRelayTag(), 0x01020304);
+  BOOST_CHECK_EQUAL(packet->GetRelayTag(), m_RelayTag);
   const std::array<std::uint8_t, 4> expected_address {{ 0x0A, 0x0B, 0x0C, 0x0D }};
   BOOST_CHECK_EQUAL_COLLECTIONS(
       packet->GetIPAddress(),
@@ -590,7 +591,7 @@ BOOST_AUTO_TEST_CASE(SessionCreatedPlain) {
   packet.SetDhY(&session_created.at(0));
   packet.SetIPAddress(&session_created.at(257), 3);
   packet.SetPort(m_Port);
-  packet.SetRelayTag(1234567890);
+  packet.SetRelayTag(m_RelayTag);
   packet.SetSignedOnTime(m_SignedOnTime);
   packet.SetSignature(&session_created.at(270), 40);
   auto buffer = std::make_unique<std::uint8_t[]>(packet.GetSize());
