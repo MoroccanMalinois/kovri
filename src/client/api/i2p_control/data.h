@@ -42,6 +42,7 @@
 #include <string>
 
 #include "client/util/json.h"
+#include "core/router/transports/ssu/server.h"
 #include "core/util/byte_stream.h"
 #include "core/util/log.h"
 
@@ -238,6 +239,20 @@ struct I2PControlDataTraits
       TunnelsCreationSuccessRate,
       TunnelsInList,
       TunnelsOutList,
+      SSUSessionRequest,
+      SSUSessionCreated,
+      SSUSessionConfirmed,
+      SSURelayRequest,
+      SSURelayResponse,
+      SSURelayIntro,
+      SSUHolePunch,
+      SSUData,
+      SSUPeerTest,
+      SSUSessionDestroyed,
+      SSUTotalSessions,
+      SSUIntroducers,
+      SSURelays,
+      SSUPeerTests,
       Unknown,
     };
     Method Which() const
@@ -248,6 +263,7 @@ struct I2PControlDataTraits
     std::uint8_t GetTrait(const std::string& value) const noexcept;
     void ParseRequest(const ptree& tree);
     void ParseResponse(const ptree& tree);
+    static core::SSUStats TraitToSSUStats(std::uint8_t key);
   };
 
   struct MethodRouterManager final : public AbstractMethod

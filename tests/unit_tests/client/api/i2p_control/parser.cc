@@ -171,6 +171,20 @@ struct I2PControlRouterInfoFixture : public I2PControlSessionFixture
   const std::size_t m_LeaseSets{30};
   const double m_TunnelsCreationSuccessRate{0.83};
   client::JsonObject m_Json;
+  const std::size_t m_SessionRequest{0};
+  const std::size_t m_SessionCreated{1};
+  const std::size_t m_SessionConfirmed{2};
+  const std::size_t m_RelayRequest{3};
+  const std::size_t m_RelayResponse{4};
+  const std::size_t m_RelayIntro{5};
+  const std::size_t m_HolePunch{6};
+  const std::size_t m_Data{7};
+  const std::size_t m_PeerTest{8};
+  const std::size_t m_SessionDestroyed{9};
+  const std::size_t m_Sessions{10};
+  const std::size_t m_Introducers{11};
+  const std::size_t m_Relays{12};
+  const std::size_t m_PeerTests{13};
 
   // RouterInfo Request
   std::string m_RouterInfoRequest{
@@ -195,7 +209,21 @@ struct I2PControlRouterInfoFixture : public I2PControlSessionFixture
       "\"i2p.router.netdb.leasesets\":null,"
       "\"i2p.router.net.tunnels.creationsuccessrate\":null,"
       "\"i2p.router.net.tunnels.inbound.list\":null,"
-      "\"i2p.router.net.tunnels.outbound.list\":null"
+      "\"i2p.router.net.tunnels.outbound.list\":null,"
+      "\"i2p.router.net.ssu.sessionrequest\":null,"
+      "\"i2p.router.net.ssu.sessioncreated\":null,"
+      "\"i2p.router.net.ssu.sessionconfirmed\":null,"
+      "\"i2p.router.net.ssu.relayrequest\":null,"
+      "\"i2p.router.net.ssu.relayresponse\":null,"
+      "\"i2p.router.net.ssu.relayintro\":null,"
+      "\"i2p.router.net.ssu.holepunch\":null,"
+      "\"i2p.router.net.ssu.data\":null,"
+      "\"i2p.router.net.ssu.peertest\":null,"
+      "\"i2p.router.net.ssu.sessiondestroyed\":null,"
+      "\"i2p.router.net.ssu.sessions\":null,"
+      "\"i2p.router.net.ssu.introducers\":null,"
+      "\"i2p.router.net.ssu.relays\":null,"
+      "\"i2p.router.net.ssu.peertests\":null"
       "},\"jsonrpc\":\"2.0\"}"};
 
   // RouterInfo Response
@@ -223,7 +251,21 @@ struct I2PControlRouterInfoFixture : public I2PControlSessionFixture
       "\"i2p.router.net.tunnels.outbound.list\":"
       "{\"3886212441\":{"
       "\"bytes\":\"0\","
-      "\"layout\":\"me-->3886212441:nrkY-->\"}}"
+      "\"layout\":\"me-->3886212441:nrkY-->\"}},"
+      "\"i2p.router.net.ssu.sessionrequest\":0,"
+      "\"i2p.router.net.ssu.sessioncreated\":1,"
+      "\"i2p.router.net.ssu.sessionconfirmed\":2,"
+      "\"i2p.router.net.ssu.relayrequest\":3,"
+      "\"i2p.router.net.ssu.relayresponse\":4,"
+      "\"i2p.router.net.ssu.relayintro\":5,"
+      "\"i2p.router.net.ssu.holepunch\":6,"
+      "\"i2p.router.net.ssu.data\":7,"
+      "\"i2p.router.net.ssu.peertest\":8,"
+      "\"i2p.router.net.ssu.sessiondestroyed\":9,"
+      "\"i2p.router.net.ssu.sessions\":10,"
+      "\"i2p.router.net.ssu.introducers\":11,"
+      "\"i2p.router.net.ssu.relays\":12,"
+      "\"i2p.router.net.ssu.peertests\":13"
       "},\"jsonrpc\":\"2.0\"}"};
 };
 
@@ -515,7 +557,7 @@ BOOST_AUTO_TEST_CASE(WriteRouterInfoRequest)
   // Set all specific params to null
   std::string empty;
   for (auto i(core::GetType(RouterInfo::Status));
-       i <= core::GetType(RouterInfo::TunnelsOutList);
+       i <= core::GetType(RouterInfo::SSUPeerTests);
        i++)
     request.SetParam(i, empty);
   // Check output
@@ -534,7 +576,7 @@ BOOST_AUTO_TEST_CASE(ReadRouterInfoRequest)
   BOOST_CHECK_EQUAL(request.GetToken(), m_Token);
   std::string empty;
   for (auto i(core::GetType(RouterInfo::Status));
-       i <= core::GetType(RouterInfo::TunnelsOutList);
+       i <= core::GetType(RouterInfo::SSUPeerTests);
        i++)
     BOOST_CHECK_EQUAL(request.GetParam<std::string>(i), empty);
 }
@@ -568,6 +610,20 @@ BOOST_AUTO_TEST_CASE(WriteRouterInfoResponse)
       RouterInfo::TunnelsCreationSuccessRate, m_TunnelsCreationSuccessRate);
   response.SetParam(RouterInfo::TunnelsInList, client::JsonObject());
   response.SetParam(RouterInfo::TunnelsOutList, m_Json);
+  response.SetParam(RouterInfo::SSUSessionRequest, m_SessionRequest);
+  response.SetParam(RouterInfo::SSUSessionCreated, m_SessionCreated);
+  response.SetParam(RouterInfo::SSUSessionConfirmed, m_SessionConfirmed);
+  response.SetParam(RouterInfo::SSURelayRequest, m_RelayRequest);
+  response.SetParam(RouterInfo::SSURelayResponse, m_RelayResponse);
+  response.SetParam(RouterInfo::SSURelayIntro, m_RelayIntro);
+  response.SetParam(RouterInfo::SSUHolePunch, m_HolePunch);
+  response.SetParam(RouterInfo::SSUData, m_Data);
+  response.SetParam(RouterInfo::SSUPeerTest, m_PeerTest);
+  response.SetParam(RouterInfo::SSUSessionDestroyed, m_SessionDestroyed);
+  response.SetParam(RouterInfo::SSUTotalSessions, m_Sessions);
+  response.SetParam(RouterInfo::SSUIntroducers, m_Introducers);
+  response.SetParam(RouterInfo::SSURelays, m_Relays);
+  response.SetParam(RouterInfo::SSUPeerTests, m_PeerTests);
   // Check output
   BOOST_CHECK_EQUAL(response.ToJsonString(), m_RouterInfoResponse);
 }
@@ -626,6 +682,41 @@ BOOST_AUTO_TEST_CASE(ReadRouterInfoResponse)
   BOOST_CHECK_EQUAL(
       response.GetParam<client::JsonObject>(RouterInfo::TunnelsOutList),
       m_Json);
+  BOOST_CHECK_EQUAL(
+      response.GetParam<std::size_t>(RouterInfo::SSUSessionRequest),
+      m_SessionRequest);
+  BOOST_CHECK_EQUAL(
+      response.GetParam<std::size_t>(RouterInfo::SSUSessionCreated),
+      m_SessionCreated);
+  BOOST_CHECK_EQUAL(
+      response.GetParam<std::size_t>(RouterInfo::SSUSessionConfirmed),
+      m_SessionConfirmed);
+  BOOST_CHECK_EQUAL(
+      response.GetParam<std::size_t>(RouterInfo::SSURelayRequest),
+      m_RelayRequest);
+  BOOST_CHECK_EQUAL(
+      response.GetParam<std::size_t>(RouterInfo::SSURelayResponse),
+      m_RelayResponse);
+  BOOST_CHECK_EQUAL(
+      response.GetParam<std::size_t>(RouterInfo::SSURelayIntro), m_RelayIntro);
+  BOOST_CHECK_EQUAL(
+      response.GetParam<std::size_t>(RouterInfo::SSUHolePunch), m_HolePunch);
+  BOOST_CHECK_EQUAL(
+      response.GetParam<std::size_t>(RouterInfo::SSUData), m_Data);
+  BOOST_CHECK_EQUAL(
+      response.GetParam<std::size_t>(RouterInfo::SSUPeerTest), m_PeerTest);
+  BOOST_CHECK_EQUAL(
+      response.GetParam<std::size_t>(RouterInfo::SSUSessionDestroyed),
+      m_SessionDestroyed);
+  BOOST_CHECK_EQUAL(
+      response.GetParam<std::size_t>(RouterInfo::SSUTotalSessions), m_Sessions);
+  BOOST_CHECK_EQUAL(
+      response.GetParam<std::size_t>(RouterInfo::SSUIntroducers),
+      m_Introducers);
+  BOOST_CHECK_EQUAL(
+      response.GetParam<std::size_t>(RouterInfo::SSURelays), m_Relays);
+  BOOST_CHECK_EQUAL(
+      response.GetParam<std::size_t>(RouterInfo::SSUPeerTests), m_PeerTests);
 }
 BOOST_AUTO_TEST_SUITE_END()
 

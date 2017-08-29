@@ -416,6 +416,36 @@ const std::string I2PControlDataTraits::MethodRouterInfo::GetTrait(
         return "i2p.router.net.tunnels.inbound.list";
       case TunnelsOutList:
         return "i2p.router.net.tunnels.outbound.list";
+      // SSU packet type counters
+      case SSUSessionRequest:
+        return "i2p.router.net.ssu.sessionrequest";
+      case SSUSessionCreated:
+        return "i2p.router.net.ssu.sessioncreated";
+      case SSUSessionConfirmed:
+        return "i2p.router.net.ssu.sessionconfirmed";
+      case SSURelayRequest:
+        return "i2p.router.net.ssu.relayrequest";
+      case SSURelayResponse:
+        return "i2p.router.net.ssu.relayresponse";
+      case SSURelayIntro:
+        return "i2p.router.net.ssu.relayintro";
+      case SSUHolePunch:
+        return "i2p.router.net.ssu.holepunch";
+      case SSUData:
+        return "i2p.router.net.ssu.data";
+      case SSUPeerTest:
+        return "i2p.router.net.ssu.peertest";
+      case SSUSessionDestroyed:
+        return "i2p.router.net.ssu.sessiondestroyed";
+      // SSU Container sizes
+      case SSUTotalSessions:
+        return "i2p.router.net.ssu.sessions";
+      case SSUIntroducers:
+        return "i2p.router.net.ssu.introducers";
+      case SSURelays:
+        return "i2p.router.net.ssu.relays";
+      case SSUPeerTests:
+        return "i2p.router.net.ssu.peertests";
       case Unknown:
         return "";
     }
@@ -485,6 +515,48 @@ std::uint8_t I2PControlDataTraits::MethodRouterInfo::GetTrait(
   else if (value == GetTrait(TunnelsOutList))
     return TunnelsOutList;
 
+  else if (value == GetTrait(SSUSessionRequest))
+    return SSUSessionRequest;
+
+  else if (value == GetTrait(SSUSessionCreated))
+    return SSUSessionCreated;
+
+  else if (value == GetTrait(SSUSessionConfirmed))
+    return SSUSessionConfirmed;
+
+  else if (value == GetTrait(SSURelayRequest))
+    return SSURelayRequest;
+
+  else if (value == GetTrait(SSURelayResponse))
+    return SSURelayResponse;
+
+  else if (value == GetTrait(SSURelayIntro))
+    return SSURelayIntro;
+
+  else if (value == GetTrait(SSUHolePunch))
+    return SSUHolePunch;
+
+  else if (value == GetTrait(SSUData))
+    return SSUData;
+
+  else if (value == GetTrait(SSUPeerTest))
+    return SSUPeerTest;
+
+  else if (value == GetTrait(SSUSessionDestroyed))
+    return SSUSessionDestroyed;
+
+  else if (value == GetTrait(SSUTotalSessions))
+    return SSUTotalSessions;
+
+  else if (value == GetTrait(SSUIntroducers))
+    return SSUIntroducers;
+
+  else if (value == GetTrait(SSURelays))
+    return SSURelays;
+
+  else if (value == GetTrait(SSUPeerTests))
+    return SSUPeerTests;
+
   return Unknown;
 }
 
@@ -527,6 +599,20 @@ void I2PControlDataTraits::MethodRouterInfo::ParseResponse(const ptree& tree)
           case KnownPeers:
           case Floodfills:
           case LeaseSets:
+          case SSUSessionRequest:
+          case SSUSessionCreated:
+          case SSUSessionConfirmed:
+          case SSURelayRequest:
+          case SSURelayResponse:
+          case SSURelayIntro:
+          case SSUHolePunch:
+          case SSUData:
+          case SSUPeerTest:
+          case SSUSessionDestroyed:
+          case SSUTotalSessions:
+          case SSUIntroducers:
+          case SSURelays:
+          case SSUPeerTests:
             Set(option, pair.second.get_value<std::size_t>());
             break;
 
@@ -554,6 +640,44 @@ void I2PControlDataTraits::MethodRouterInfo::ParseResponse(const ptree& tree)
           case Unknown:
             throw std::domain_error("Invalid key " + pair.first);
         }
+    }
+}
+
+core::SSUStats I2PControlDataTraits::MethodRouterInfo::TraitToSSUStats(
+    std::uint8_t trait)
+{
+  typedef core::SSUStats SSUStats;
+  switch (trait)
+    {
+      case SSUSessionRequest:
+        return SSUStats::SessionRequest;
+      case SSUSessionCreated:
+        return SSUStats::SessionCreated;
+      case SSUSessionConfirmed:
+        return SSUStats::SessionConfirmed;
+      case SSURelayRequest:
+        return SSUStats::RelayRequest;
+      case SSURelayResponse:
+        return SSUStats::RelayResponse;
+      case SSURelayIntro:
+        return SSUStats::RelayIntro;
+      case SSUHolePunch:
+        return SSUStats::HolePunch;
+      case SSUData:
+        return SSUStats::Data;
+      case SSUPeerTest:
+        return SSUStats::PeerTest;
+      case SSUSessionDestroyed:
+      case SSUTotalSessions:
+        return SSUStats::TotalSessions;
+      case SSUIntroducers:
+        return SSUStats::NbIntroducers;
+      case SSURelays:
+        return SSUStats::NbRelays;
+      case SSUPeerTests:
+        return SSUStats::NbPeerTests;
+      default:
+        return SSUStats::Unknown;
     }
 }
 

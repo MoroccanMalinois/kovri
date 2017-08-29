@@ -317,6 +317,28 @@ void I2PControlSession::HandleRouterInfo(
             HandleTunnelsOutList(response);
             break;
 
+          // SSU Stats
+          case RouterInfo::SSUSessionRequest:
+          case RouterInfo::SSUSessionCreated:
+          case RouterInfo::SSUSessionConfirmed:
+          case RouterInfo::SSURelayRequest:
+          case RouterInfo::SSURelayResponse:
+          case RouterInfo::SSURelayIntro:
+          case RouterInfo::SSUHolePunch:
+          case RouterInfo::SSUData:
+          case RouterInfo::SSUPeerTest:
+          case RouterInfo::SSUSessionDestroyed:
+          case RouterInfo::SSUTotalSessions:
+          case RouterInfo::SSUIntroducers:
+          case RouterInfo::SSURelays:
+          case RouterInfo::SSUPeerTests:
+            response->SetParam(
+                pair.first,
+                core::transports.GetStat(
+                    RouterInfo::TraitToSSUStats(pair.first)));
+            break;
+
+          // Not Yet Implemented
           case RouterInfo::BWIn15S:
           case RouterInfo::BWOut15S:
           case RouterInfo::FastPeers:
