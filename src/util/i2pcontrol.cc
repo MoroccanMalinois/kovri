@@ -105,6 +105,7 @@ void I2PControlCommand::PrintUsage(const std::string& name) const
   LOG(info) << "\treseed";
   LOG(info) << "\tshutdown";
   LOG(info) << "\tforce-shutdown";
+  LOG(info) << "\tstats";
 }
 
 bool I2PControlCommand::Impl(
@@ -212,6 +213,37 @@ void I2PControlCommand::ProcessConfig(
     {
       request->SetMethod(Method::RouterManager);
       request->SetParam(RouterManager::Shutdown, std::string());
+      return;
+    }
+  else if (m_Command == "stats")
+    {
+      request->SetMethod(Method::RouterInfo);
+      std::string empty;
+      request->SetParam(RouterInfo::BWIn1S, empty);
+      request->SetParam(RouterInfo::BWOut1S, empty);
+      request->SetParam(RouterInfo::TunnelsParticipating, empty);
+      request->SetParam(RouterInfo::ActivePeers, empty);
+      // TODO(unassigned): uncomment when implemented
+      // request->SetParam(RouterInfo::FastPeers, empty);
+      // request->SetParam(RouterInfo::HighCapacityPeers, empty);
+      request->SetParam(RouterInfo::KnownPeers, empty);
+      request->SetParam(RouterInfo::Floodfills, empty);
+      request->SetParam(RouterInfo::LeaseSets, empty);
+      request->SetParam(RouterInfo::TunnelsCreationSuccessRate, empty);
+      request->SetParam(RouterInfo::SSUSessionRequest, empty);
+      request->SetParam(RouterInfo::SSUSessionCreated, empty);
+      request->SetParam(RouterInfo::SSUSessionConfirmed, empty);
+      request->SetParam(RouterInfo::SSURelayRequest, empty);
+      request->SetParam(RouterInfo::SSURelayResponse, empty);
+      request->SetParam(RouterInfo::SSURelayIntro, empty);
+      request->SetParam(RouterInfo::SSUHolePunch, empty);
+      request->SetParam(RouterInfo::SSUData, empty);
+      request->SetParam(RouterInfo::SSUPeerTest, empty);
+      request->SetParam(RouterInfo::SSUSessionDestroyed, empty);
+      request->SetParam(RouterInfo::SSUTotalSessions, empty);
+      request->SetParam(RouterInfo::SSUIntroducers, empty);
+      request->SetParam(RouterInfo::SSURelays, empty);
+      request->SetParam(RouterInfo::SSUPeerTests, empty);
       return;
     }
   else if (!m_Command.empty())
@@ -329,7 +361,7 @@ void I2PControlCommand::HandleResponse(
       return ProcessRouterManager(
           *response, m_Command, RouterManager::Shutdown);
     }
-  else if (!m_Command.empty())
+  else if ((m_Command != "stats") && !m_Command.empty())
     {
       throw std::runtime_error("Missing implementation");
     }
