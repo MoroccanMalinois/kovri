@@ -63,6 +63,29 @@ struct RawSSUPacket {
   std::size_t len;
 };
 
+/// @enum SSUStats
+/// @brief Various statistics
+enum struct SSUStats : std::uint8_t
+{
+  // Nb of each payload type
+  SessionRequest,
+  SessionCreated,
+  SessionConfirmed,
+  RelayRequest,
+  RelayResponse,
+  RelayIntro,
+  Data,
+  PeerTest,
+  SessionDestroyed,
+  HolePunch,  // Stored in counter container under SSUPayloadType::Unknown
+  // Container sizes
+  TotalSessions,
+  NbIntroducers,
+  NbRelays,
+  NbPeerTests,
+  Unknown
+};
+
 class SSUServer {
  public:
   SSUServer(
@@ -131,6 +154,14 @@ class SSUServer {
   void RemovePeerTest(
       std::uint32_t nonce);
 
+  /// @brief Increment counter
+  /// @param type SSU packet type
+  /// @param nb Number of packets
+  void IncrementCounter(SSUPayloadType type, std::size_t nb);
+
+  /// @return Value associated with key indicator
+  std::size_t GetStat(SSUStats stat) const;
+
  private:
   void Receive();
 
@@ -194,6 +225,20 @@ class SSUServer {
 
   // nonce -> creation time in milliseconds
   std::map<std::uint32_t, PeerTest> m_PeerTests;
+
+  // Counter for each payload type
+  std::mutex m_CounterMutex;
+  std::map<SSUPayloadType, std::size_t> m_Counters{
+      {SSUPayloadType::SessionRequest, 0},
+      {SSUPayloadType::SessionCreated, 0},
+      {SSUPayloadType::SessionConfirmed, 0},
+      {SSUPayloadType::RelayRequest, 0},
+      {SSUPayloadType::RelayResponse, 0},
+      {SSUPayloadType::RelayIntro, 0},
+      {SSUPayloadType::Data, 0},
+      {SSUPayloadType::PeerTest, 0},
+      {SSUPayloadType::SessionDestroyed, 0},
+      {SSUPayloadType::Unknown, 0}};
 };
 
 }  // namespace core

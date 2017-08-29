@@ -615,6 +615,52 @@ void SSUServer::HandlePeerTestsCleanupTimer(
   }
 }
 
+void SSUServer::IncrementCounter(SSUPayloadType type, std::size_t nb)
+{
+  std::unique_lock<std::mutex> lock(m_CounterMutex);
+  m_Counters[type] += nb;
+}
+
+std::size_t SSUServer::GetStat(SSUStats stat) const
+{
+  switch (stat)
+    {
+      // Nb of each payload type
+      case SSUStats::SessionRequest:
+        return m_Counters.at(SSUPayloadType::SessionRequest);
+      case SSUStats::SessionCreated:
+        return m_Counters.at(SSUPayloadType::SessionCreated);
+      case SSUStats::SessionConfirmed:
+        return m_Counters.at(SSUPayloadType::SessionConfirmed);
+      case SSUStats::RelayRequest:
+        return m_Counters.at(SSUPayloadType::RelayRequest);
+      case SSUStats::RelayResponse:
+        return m_Counters.at(SSUPayloadType::RelayResponse);
+      case SSUStats::RelayIntro:
+        return m_Counters.at(SSUPayloadType::RelayIntro);
+      case SSUStats::Data:
+        return m_Counters.at(SSUPayloadType::Data);
+      case SSUStats::PeerTest:
+        return m_Counters.at(SSUPayloadType::PeerTest);
+      case SSUStats::SessionDestroyed:
+        return m_Counters.at(SSUPayloadType::SessionDestroyed);
+      case SSUStats::HolePunch:
+        return m_Counters.at(SSUPayloadType::Unknown);
+      // Container sizes
+      case SSUStats::TotalSessions:
+        return m_Sessions.size();
+      case SSUStats::NbIntroducers:
+        return m_Introducers.size();
+      case SSUStats::NbRelays:
+        return m_Relays.size();
+      case SSUStats::NbPeerTests:
+        return m_PeerTests.size();
+      default:
+        throw std::runtime_error(
+            "Invalid stat key " + std::to_string(core::GetType(stat)));
+    }
+}
+
 }  // namespace core
 }  // namespace kovri
 

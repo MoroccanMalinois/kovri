@@ -164,6 +164,7 @@ void SSUSession::ProcessNextMessage(
   if (m_State == SessionState::Introduced) {
     // HolePunch received
     LOG(debug) << "SSUSession: SSU HolePunch of " << len << " bytes received";
+    m_Server.IncrementCounter(SSUPayloadType::Unknown, 1);
     m_State = SessionState::Unknown;
     Connect();
   } else {
@@ -238,6 +239,7 @@ void SSUSession::ProcessDecryptedMessage(
       << " --> unknown exception";
     return;
   }
+  m_Server.IncrementCounter(packet->GetHeader()->GetPayloadType(), 1);
   switch (packet->GetHeader()->GetPayloadType()) {
     case SSUPayloadType::Data:
       ProcessData(packet.get());
@@ -648,6 +650,7 @@ void SSUSession::SendRelayRequest(
   std::array<std::uint8_t, GetType(SSUSize::IV)> iv;
   kovri::core::RandBytes(iv.data(), iv.size());
   auto relay_request = GetType(SSUPayloadType::RelayRequest);
+  m_Server.IncrementCounter(SSUPayloadType::RelayRequest, 1);
   if (m_State == SessionState::Established) {
     FillHeaderAndEncrypt(
         relay_request,
@@ -739,6 +742,7 @@ void SSUSession::SendRelayResponse(
   payload += 2;  // port
   htobe32buf(payload, nonce);
   auto relay_response = GetType(SSUPayloadType::RelayResponse);
+  m_Server.IncrementCounter(SSUPayloadType::RelayResponse, 1);
   if (m_State == SessionState::Established) {
     // encrypt with session key
     FillHeaderAndEncrypt(
@@ -815,6 +819,7 @@ void SSUSession::SendRelayIntro(
   *payload = 0;  // challenge size
   std::array<std::uint8_t, GetType(SSUSize::IV)> iv;
   kovri::core::RandBytes(iv.data(), iv.size());  // random iv
+  m_Server.IncrementCounter(SSUPayloadType::RelayIntro, 1);
   FillHeaderAndEncrypt(
       GetType(SSUPayloadType::RelayIntro),
       buf.data(),
@@ -1019,6 +1024,7 @@ void SSUSession::SendPeerTest(
   std::array<std::uint8_t, GetType(SSUSize::IV)> iv;
   kovri::core::RandBytes(iv.data(), iv.size());
   auto peer_test = GetType(SSUPayloadType::PeerTest);
+  m_Server.IncrementCounter(SSUPayloadType::PeerTest, 1);
   if (to_address) {
     // encrypt message with specified intro key
     FillHeaderAndEncrypt(
@@ -1076,6 +1082,7 @@ void SSUSession::SendSesionDestroyed() {
   if (m_IsSessionKey) {
     std::array<std::uint8_t, 48 + GetType(SSUSize::BufferMargin)> buf {{}};
     // encrypt message with session key
+    m_Server.IncrementCounter(SSUPayloadType::SessionDestroyed, 1);
     FillHeaderAndEncrypt(
         GetType(SSUPayloadType::SessionDestroyed),
         buf.data(),
@@ -1100,6 +1107,7 @@ void SSUSession::SendKeepAlive() {
     payload++;
     *payload = 0;  // num fragments
     // encrypt message with session key
+    m_Server.IncrementCounter(SSUPayloadType::Data, 1);
     FillHeaderAndEncrypt(
         GetType(SSUPayloadType::Data),
         buf.data(),
@@ -1161,6 +1169,7 @@ void SSUSession::WriteAndEncrypt(
     const std::uint8_t* mac_key) {
   // TODO(anonimal): this try block should be handled entirely by caller
   try {
+    m_Server.IncrementCounter(packet->GetHeader()->GetPayloadType(), 1);
     packet->GetHeader()->SetTime(kovri::core::GetSecondsSinceEpoch());
     SSUPacketBuilder builder(buffer, buffer_size);
     // Write header (excluding MAC)

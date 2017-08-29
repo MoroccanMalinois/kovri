@@ -221,6 +221,12 @@ class Transports {
   std::string GetFormattedSessionInfo(
       std::shared_ptr<const kovri::core::RouterInfo>& router) const;
 
+  /// @return statistic associated with key
+  std::size_t GetStat(SSUStats stat) const
+  {
+    return m_SSUServer ? m_SSUServer->GetStat(stat) : 0;
+  }
+
  private:
   void Run();
 
