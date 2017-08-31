@@ -48,7 +48,7 @@
 namespace kovri {
 namespace client {
 
-const std::size_t I2P_CONTROL_MAX_REQUEST_SIZE = 1024;
+const std::size_t I2P_CONTROL_MAX_REQUEST_SIZE = 2048;
 typedef std::array<char, I2P_CONTROL_MAX_REQUEST_SIZE> I2PControlBuffer;
 
 class I2PControlService {
