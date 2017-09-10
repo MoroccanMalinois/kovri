@@ -79,7 +79,6 @@ fw_entrypoint="firewall.sh"
 
 PrintUsage()
 {
-
   echo ""
   echo "Testnet environment variables"
   echo "-----------------------------"
@@ -123,7 +122,7 @@ PrintUsage()
   echo ""
   echo "  $ cat /tmp/testnet/kovri_010/log_pipe"
   echo ""
-  echo "Usage: $ $0 {create|start|stop|destroy|exec|help}" >&2
+  echo "Usage: $ $0 {create|start|stop|destroy|exec|stats|help}" >&2
 }
 
 if [[ $# -lt 1 ]]
@@ -626,6 +625,22 @@ Exec()
   catch "Docker: run failed"
 }
 
+Stats()
+{
+  for _seq in $($sequence); do
+    local _container_name="${docker_base_name}_${_seq}"
+    local _host="${network_octets}.$((10#${_seq}))"
+    IFS=$'\n'
+    stats=$(${KOVRI_REPO}/build/kovri-util control stats --host $_host --log-to-console 0)
+    for stat in $stats;do
+      IFS=$' '
+      stat=($stat)
+      echo "- ${stat[4]}[$_container_name] ${stat[6]}"
+    done
+    unset IFS
+  done
+}
+
 # Error handler
 catch()
 {
@@ -695,6 +710,10 @@ case "$1" in
   exec)
     set_repo && set_images && Exec "${_args[@]:1}"
     ;;
+  stats)
+    set_repo && set_image && set_network && Stats
+    ;;
+  *)
   help | *)
     PrintUsage
     exit 1
