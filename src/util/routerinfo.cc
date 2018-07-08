@@ -163,6 +163,7 @@ bool RouterInfoCommand::Impl(
           auto bandwidth = vm["bandwidth"].as<std::string>();
           if (!bandwidth.empty() && (bandwidth[0] > 'L'))
             caps |= core::RouterInfo::Cap::HighBandwidth;
+          routerInfo.SetCaps(caps);
 
           // Set filename if none provided
           if (filename.empty())
